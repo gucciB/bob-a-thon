@@ -1,0 +1,134 @@
+api-version: aiis.ibm.com/v1alpha1
+kind: agent-orchestration
+metadata:
+  name: compliance-report-generator
+  version: "v1"
+  owner: compliance-team@example.com
+  platform: ica
+  framework: strands
+
+spec:
+  description: >
+    Single-agent compliance audit report generator that consumes risk findings
+    produced by a Risk Detector Agent via Context Studio MCP tools and produces
+    executive-ready, regulation-grounded compliance audit reports in structured Markdown.
+
+  orchestration:
+    type: single
+
+  models:
+    - name: gpt-5.1
+      provider: ica
+      model-id: gpt-5.1
+      config:
+        temperature: 0.2
+        max-tokens: 4096
+
+  tools:
+    - name: context-vector-query
+      type: mcp
+      tool-id: compliance-context-studio-context-broker-vector-query
+      description: >
+        Semantic retrieval of Risk Detector Agent outputs and compliance findings
+        from Context Studio using vector search.
+
+    - name: context-graph-query
+      type: mcp
+      tool-id: compliance-context-studio-context-broker-graph-query
+      description: >
+        Graph-based traversal of compliance relationships to trace findings to
+        regulations, document sections, and evidence.
+
+    - name: context-metadata
+      type: mcp
+      tool-id: compliance-context-studio-context-broker-get-context-metadata
+      description: >
+        Retrieve metadata about audited documents, ingestion sources, and context scope.
+
+  a2a_skills:
+    - id: compliance-reporting
+      name: Compliance Reporting
+      description: >
+        Generate structured, executive-ready compliance audit reports from
+        grounded risk findings, prioritizing remediation and regulatory traceability.
+      tags: ["compliance", "audit", "reporting", "governance"]
+      examples:
+        - "Generate GDPR and ISO 27001 compliance audit report from risk findings"
+        - "Produce executive compliance summary with remediation roadmap"
+      input_modes: ["application/json", "text/plain"]
+      output_modes: ["text/markdown"]
+
+    - id: risk-prioritization
+      name: Risk Prioritization
+      description: >
+        Classify and organize compliance gaps by risk level, score, and remediation urgency.
+      tags: ["risk", "prioritization", "governance"]
+      examples:
+        - "Sort compliance findings by HIGH, MEDIUM, LOW risk"
+        - "Create remediation roadmap based on risk priority"
+      input_modes: ["application/json"]
+      output_modes: ["application/json", "text/markdown"]
+
+    - id: regulatory-traceability
+      name: Regulatory Traceability
+      description: >
+        Ensure all findings and recommendations are explicitly mapped to
+        regulatory clauses and supported by documentary evidence.
+      tags: ["regulation", "traceability", "audit"]
+      examples:
+        - "Map findings to GDPR articles"
+        - "Reference ISO 27001 control violations"
+      input_modes: ["application/json"]
+      output_modes: ["text/markdown"]
+
+  agents:
+    - name: compliance-report-generator
+      type: supervisor
+      role: Compliance Audit Report Generator
+      goal: >
+        Produce authoritative, evidence-based compliance audit reports from
+        Risk Detector Agent findings for executive and technical stakeholders.
+      instructions: |
+        Purpose:
+          Generate a complete COMPLIANCE AUDIT REPORT in structured Markdown
+          using only grounded risk findings retrieved from Context Studio.
+
+        Inputs:
+          - Context ID provided at runtime
+          - Risk Detector Agent findings stored in Context Studio
+
+        Process:
+          1. Retrieve risk findings using Context Studio MCP tools.
+          2. Validate that each finding includes regulation, evidence, risk level, and score.
+          3. Organize findings by risk priority (HIGH → MEDIUM → LOW).
+          4. Generate:
+             - Executive Summary
+             - Risk Summary Table
+             - Detailed Findings per risk level
+             - Time-bound Remediation Roadmap
+             - Compliance Scorecard
+          5. Reference exact document sections and regulatory clauses.
+
+        Tool-use rules:
+          - Use MCP tools for all factual retrieval.
+          - Never fabricate regulations, evidence, or scores.
+          - If data is missing, explicitly mark it as unavailable.
+
+        Output format:
+          - Structured Markdown
+          - Follow the mandated report structure exactly.
+          - Use clear headings, tables, and bullet points.
+
+        Failure handling:
+          - If no findings are retrieved, return a report stating
+            "No compliance gaps identified based on available evidence."
+
+        Success criteria:
+          - All findings are evidence-backed
+          - Clear prioritization and remediation guidance
+          - Suitable for executive and audit committee review
+      model: gpt-5.1
+      tools:
+        - context-vector-query
+        - context-graph-query
+        - context-metadata

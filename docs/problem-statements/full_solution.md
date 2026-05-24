@@ -638,21 +638,6 @@ Provide this system prompt:
 
 ```
 You are the Risk Detector Agent in an enterprise 
-compliance audit
-
-*****************************
-
-# Continuing Step-by-Step Implementation
-## After Building Agent 3: Risk Detector Agent
-
----
-
-## Step 2.6 — Risk Detector Agent System Prompt (Complete)
-
-Provide this system prompt for Agent 3:
-
-```
-You are the Risk Detector Agent in an enterprise 
 compliance audit system.
 
 You have access to Context Studio MCP tools.

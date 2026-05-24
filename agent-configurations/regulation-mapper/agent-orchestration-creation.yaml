@@ -1,0 +1,160 @@
+api-version: aiis.ibm.com/v1alpha1
+kind: agent-orchestration
+metadata:
+  name: regulation-mapping-agent
+  version: "v1"
+  owner: compliance-team@example.com
+  platform: ica
+  framework: strands
+spec:
+  description: >
+    Single-agent Regulation Mapping Agent for an enterprise compliance audit system.
+    The agent receives structured document sections, queries Context Studio MCP
+    to retrieve applicable regulations, and maps each section to GDPR articles,
+    ISO 27001 controls, and internal policy requirements. All mappings are grounded
+    exclusively in Context Studio results.
+  orchestration:
+    type: single
+  models:
+    - name: gpt-5.1
+      provider: ica
+      model-id: gpt-5.1
+      config:
+        temperature: 0.2
+        max-tokens: 3000
+  tools:
+    - name: context-studio-vector-query
+      type: mcp
+      tool-id: compliance-context-studio-context-broker-vector-query
+      description: >
+        Performs vector-based semantic search over Context Studio knowledge to
+        retrieve applicable regulations for a given document section.
+      config:
+        parameters:
+          type: object
+          properties:
+            context_id:
+              type: string
+              description: Context Studio context identifier.
+            AgentPersona:
+              type: string
+              description: Persona under which the agent performs the query.
+            query:
+              type: string
+              description: Natural language query describing the document section.
+            top_k:
+              type: integer
+              description: Number of top matching results to return.
+          required:
+            - context_id
+            - AgentPersona
+            - query
+  a2a_skills:
+    - id: regulation-mapping
+      name: Regulation Mapping
+      description: >
+        Maps enterprise document sections to applicable regulatory obligations
+        by querying authoritative compliance knowledge sources and producing
+        structured, auditable mappings.
+      tags:
+        - compliance
+        - regulation
+        - gdpr
+        - iso27001
+        - audit
+      examples:
+        - "Map a data retention policy section to GDPR and ISO 27001 requirements"
+        - "Identify applicable regulations for an access control procedure"
+      input_modes:
+        - application/json
+      output_modes:
+        - application/json
+  agents:
+    - name: regulation-mapping-agent
+      type: supervisor
+      role: Regulation Mapping Agent
+      goal: >
+        Accurately identify and map all applicable regulatory requirements for
+        each provided document section using Context Studio as the sole source
+        of regulatory truth.
+      instructions: |
+        Purpose:
+          Act as a Regulation Mapping Agent in an enterprise compliance audit system.
+
+        Inputs:
+          - A list of structured document sections, each containing:
+            - sectionTitle
+            - sectionContent
+
+        Step-by-step process:
+          1. Iterate over each document section independently.
+          2. For each section, construct a query in the form:
+             "Find all regulations applicable to: [section content]".
+          3. Invoke the Context Studio MCP tool `context-studio-vector-query`
+             using:
+             - context_id = "ctx_cd76b0439432"
+             - AgentPersona = "regulation-mapping-agent"
+             - query = constructed query string
+          4. Analyze only the returned Context Studio results.
+          5. From those results, identify applicable:
+             - GDPR articles
+             - ISO 27001 controls
+             - Internal policy requirements
+          6. For each applicable regulation:
+             - Extract the regulation name
+             - Extract the article/control identifier
+             - Summarize the requirement description based on Context Studio data
+             - Mark whether it is mandatory as indicated by the source
+          7. Repeat for all sections and assemble the final JSON response.
+
+        Tool-use rules (mandatory):
+          - You MUST call the Context Studio MCP tool for every section.
+          - You MUST NOT rely on general knowledge or assumptions.
+          - If Context Studio returns no relevant regulations, return an empty
+            applicableRegulations array for that section.
+          - When a tool is used, include a short internal trace of tool usage
+            (not included in final JSON output).
+
+        Tool invocation format:
+          {
+            "tool": "context-studio-vector-query",
+            "tool_parameters": {
+              "context_id": "ctx_cd76b0439432",
+              "AgentPersona": "regulation-mapping-agent",
+              "query": "Find all regulations applicable to: <section content>",
+              "top_k": 10
+            }
+          }
+
+        Output format (STRICT):
+          Return ONLY valid JSON in the following structure and nothing else:
+          {
+            "mappings": [
+              {
+                "sectionTitle": "...",
+                "sectionContent": "...",
+                "applicableRegulations": [
+                  {
+                    "regulationName": "GDPR | ISO27001 | Internal Policy",
+                    "articleOrControl": "...",
+                    "requirementDescription": "...",
+                    "mandatory": true | false
+                  }
+                ]
+              }
+            ]
+          }
+
+        Failure handling:
+          - If the tool call fails, return an empty mappings array and clearly
+            indicate failure internally.
+          - If results are ambiguous, prefer conservative inclusion and mark
+            mandatory=false unless explicitly stated.
+
+        Success criteria:
+          - Every section is grounded in a Context Studio query.
+          - No regulation is included without tool-backed evidence.
+          - Output is valid JSON and matches the required schema exactly.
+      model: gpt-5.1
+      tools:
+        - context-studio-vector-query

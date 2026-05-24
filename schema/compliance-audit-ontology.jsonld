@@ -1,534 +1,510 @@
 {
   "@context": {
-    "@vocab": "http://example.org/compliance#",
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-    "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "owl": "http://www.w3.org/2002/07/owl#",
-    "compliance": "http://example.org/compliance#"
+    "compliance": "http://example.org/compliance#",
+    "schema": "http://schema.org/",
+    "id": "@id",
+    "type": "@type",
+    "name": "schema:name",
+    "description": "schema:description",
+    "attributes": "compliance:attributes",
+    "identityKey": "compliance:identityKey",
+    "humanRef": "compliance:humanRef",
+    "invariant": "compliance:invariant",
+    "hasState": {
+      "@id": "compliance:hasState",
+      "@type": "@id"
+    },
+    "initialState": {
+      "@id": "compliance:initialState",
+      "@type": "@id"
+    },
+    "terminalStates": {
+      "@id": "compliance:terminalStates",
+      "@type": "@id"
+    },
+    "relatesTo": {
+      "@id": "compliance:relatesTo",
+      "@type": "@id"
+    },
+    "emitsEvent": {
+      "@id": "compliance:emitsEvent",
+      "@type": "@id"
+    },
+    "from": {
+      "@id": "compliance:from",
+      "@type": "@id"
+    },
+    "to": {
+      "@id": "compliance:to",
+      "@type": "@id"
+    },
+    "precondition": "compliance:precondition",
+    "postcondition": "compliance:postcondition",
+    "Entity": "compliance:Entity",
+    "Operation": "compliance:Operation",
+    "State": "compliance:State"
   },
   "@graph": [
     {
-      "@id": "compliance:ComplianceAuditOntology",
-      "@type": "owl:Ontology",
-      "rdfs:label": "Compliance Audit Ontology",
-      "rdfs:comment": "An ontology for modeling compliance audits, regulations, policies, gaps, risks, and remediation actions",
-      "owl:versionInfo": "1.0.0"
-    },
-    {
-      "@id": "compliance:RegulationClause",
-      "@type": "owl:Class",
-      "rdfs:label": "Regulation Clause",
-      "rdfs:comment": "A specific clause or article within a regulation or standard",
-      "rdfs:subClassOf": {
-        "@type": "owl:Restriction",
-        "owl:onProperty": "compliance:clauseId",
-        "owl:cardinality": 1
-      }
-    },
-    {
-      "@id": "compliance:clauseId",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Clause ID",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Unique identifier (UUID) for the regulation clause"
-    },
-    {
-      "@id": "compliance:regulationName",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Regulation Name",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:oneOf": {
-          "@list": ["GDPR", "ISO27001", "SOC2", "INTERNAL"]
-        }
+      "id": "compliance:RegulationClause",
+      "type": "Entity",
+      "name": "RegulationClause",
+      "description": "A specific clause or article within a regulation or standard",
+      "identityKey": "clauseId: UUID",
+      "humanRef": "articleNumber",
+      "attributes": {
+        "clauseId": "string",
+        "regulationName": "GDPR|ISO27001|SOC2|INTERNAL",
+        "articleNumber": "string",
+        "clauseTitle": "string",
+        "clauseDescription": "string",
+        "category": "DATA_PRIVACY|ACCESS_CONTROL|SECURITY|HR|CONTRACT",
+        "mandatory": "boolean"
       },
-      "rdfs:comment": "Name of the regulation or standard"
+      "invariant": [
+        "clauseId must be unique",
+        "regulationName must be one of: GDPR, ISO27001, SOC2, INTERNAL",
+        "category must be one of: DATA_PRIVACY, ACCESS_CONTROL, SECURITY, HR, CONTRACT",
+        "mandatory must be a boolean value"
+      ],
+      "relatesTo": [
+        "compliance:PolicySection",
+        "compliance:ComplianceGap",
+        "compliance:RiskFinding",
+        "compliance:RemediationAction"
+      ]
     },
     {
-      "@id": "compliance:articleNumber",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Article Number",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Article or section number within the regulation"
-    },
-    {
-      "@id": "compliance:clauseTitle",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Clause Title",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Title of the regulation clause"
-    },
-    {
-      "@id": "compliance:clauseDescription",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Clause Description",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Detailed description of the regulation clause"
-    },
-    {
-      "@id": "compliance:category",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Category",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:oneOf": {
-          "@list": ["DATA_PRIVACY", "ACCESS_CONTROL", "SECURITY", "HR", "CONTRACT"]
-        }
+      "id": "compliance:PolicySection",
+      "type": "Entity",
+      "name": "PolicySection",
+      "description": "A section within a policy or contract document",
+      "identityKey": "sectionId: UUID",
+      "humanRef": "sectionTitle",
+      "attributes": {
+        "sectionId": "string",
+        "documentName": "string",
+        "sectionTitle": "string",
+        "sectionContent": "string",
+        "documentType": "CONTRACT|SECURITY_POLICY|HR_POLICY|GDPR_NOTICE"
       },
-      "rdfs:comment": "Category of the regulation clause"
+      "invariant": [
+        "sectionId must be unique",
+        "documentType must be one of: CONTRACT, SECURITY_POLICY, HR_POLICY, GDPR_NOTICE",
+        "sectionContent must not be empty"
+      ],
+      "hasState": [
+        "compliance:PolicySectionPending",
+        "compliance:PolicySectionMapped",
+        "compliance:PolicySectionAudited"
+      ],
+      "initialState": "compliance:PolicySectionPending",
+      "terminalStates": [
+        "compliance:PolicySectionAudited"
+      ],
+      "relatesTo": [
+        "compliance:RegulationClause",
+        "compliance:ComplianceGap",
+        "compliance:AuditDocument"
+      ],
+      "emitsEvent": [
+        "compliance:PolicySectionMapped",
+        "compliance:PolicySectionAudited"
+      ]
     },
     {
-      "@id": "compliance:mandatory",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Mandatory",
-      "rdfs:domain": "compliance:RegulationClause",
-      "rdfs:range": "xsd:boolean",
-      "rdfs:comment": "Indicates whether compliance with this clause is mandatory"
-    },
-    {
-      "@id": "compliance:PolicySection",
-      "@type": "owl:Class",
-      "rdfs:label": "Policy Section",
-      "rdfs:comment": "A section within a policy or contract document",
-      "rdfs:subClassOf": {
-        "@type": "owl:Restriction",
-        "owl:onProperty": "compliance:sectionId",
-        "owl:cardinality": 1
-      }
-    },
-    {
-      "@id": "compliance:sectionId",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Section ID",
-      "rdfs:domain": "compliance:PolicySection",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Unique identifier (UUID) for the policy section"
-    },
-    {
-      "@id": "compliance:documentName",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Document Name",
-      "rdfs:domain": ["compliance:PolicySection", "compliance:AuditDocument"],
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Name of the document"
-    },
-    {
-      "@id": "compliance:sectionTitle",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Section Title",
-      "rdfs:domain": "compliance:PolicySection",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Title of the policy section"
-    },
-    {
-      "@id": "compliance:sectionContent",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Section Content",
-      "rdfs:domain": "compliance:PolicySection",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Content of the policy section"
-    },
-    {
-      "@id": "compliance:documentType",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Document Type",
-      "rdfs:domain": ["compliance:PolicySection", "compliance:AuditDocument"],
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:oneOf": {
-          "@list": ["CONTRACT", "SECURITY_POLICY", "HR_POLICY", "GDPR_NOTICE"]
-        }
+      "id": "compliance:ComplianceGap",
+      "type": "Entity",
+      "name": "ComplianceGap",
+      "description": "A gap or deficiency in compliance with regulations",
+      "identityKey": "gapId: UUID",
+      "humanRef": "gapDescription",
+      "attributes": {
+        "gapId": "string",
+        "gapDescription": "string",
+        "affectedClause": "string",
+        "affectedSection": "string",
+        "riskLevel": "HIGH|MEDIUM|LOW"
       },
-      "rdfs:comment": "Type of the document"
+      "invariant": [
+        "gapId must be unique",
+        "riskLevel must be one of: HIGH, MEDIUM, LOW",
+        "Must reference at least one RegulationClause",
+        "Must reference at least one PolicySection"
+      ],
+      "hasState": [
+        "compliance:GapIdentified",
+        "compliance:GapAnalyzed",
+        "compliance:GapRemediated"
+      ],
+      "initialState": "compliance:GapIdentified",
+      "terminalStates": [
+        "compliance:GapRemediated"
+      ],
+      "relatesTo": [
+        "compliance:RegulationClause",
+        "compliance:PolicySection",
+        "compliance:RiskFinding",
+        "compliance:RemediationAction"
+      ],
+      "emitsEvent": [
+        "compliance:GapAnalyzed",
+        "compliance:GapRemediated"
+      ]
     },
     {
-      "@id": "compliance:ComplianceGap",
-      "@type": "owl:Class",
-      "rdfs:label": "Compliance Gap",
-      "rdfs:comment": "A gap or deficiency in compliance with regulations",
-      "rdfs:subClassOf": {
-        "@type": "owl:Restriction",
-        "owl:onProperty": "compliance:gapId",
-        "owl:cardinality": 1
-      }
-    },
-    {
-      "@id": "compliance:gapId",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Gap ID",
-      "rdfs:domain": "compliance:ComplianceGap",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Unique identifier (UUID) for the compliance gap"
-    },
-    {
-      "@id": "compliance:gapDescription",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Gap Description",
-      "rdfs:domain": "compliance:ComplianceGap",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Description of the compliance gap"
-    },
-    {
-      "@id": "compliance:affectedClause",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Affected Clause",
-      "rdfs:domain": "compliance:ComplianceGap",
-      "rdfs:range": "compliance:RegulationClause",
-      "rdfs:comment": "The regulation clause affected by this gap"
-    },
-    {
-      "@id": "compliance:affectedSection",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Affected Section",
-      "rdfs:domain": "compliance:ComplianceGap",
-      "rdfs:range": "compliance:PolicySection",
-      "rdfs:comment": "The policy section affected by this gap"
-    },
-    {
-      "@id": "compliance:riskLevel",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Risk Level",
-      "rdfs:domain": ["compliance:ComplianceGap", "compliance:RiskFinding"],
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:oneOf": {
-          "@list": ["HIGH", "MEDIUM", "LOW"]
-        }
+      "id": "compliance:RiskFinding",
+      "type": "Entity",
+      "name": "RiskFinding",
+      "description": "A risk finding identified during compliance audit",
+      "identityKey": "findingId: UUID",
+      "humanRef": "findingTitle",
+      "attributes": {
+        "findingId": "string",
+        "findingTitle": "string",
+        "findingDescription": "string",
+        "riskScore": "integer(1-10)",
+        "riskLevel": "HIGH|MEDIUM|LOW",
+        "regulationReference": "string",
+        "remediationSuggestion": "string"
       },
-      "rdfs:comment": "Level of risk associated with the gap or finding"
+      "invariant": [
+        "findingId must be unique",
+        "riskScore must be between 1 and 10",
+        "riskLevel must be one of: HIGH, MEDIUM, LOW",
+        "Must contain at least one ComplianceGap"
+      ],
+      "hasState": [
+        "compliance:FindingDraft",
+        "compliance:FindingReviewed",
+        "compliance:FindingResolved"
+      ],
+      "initialState": "compliance:FindingDraft",
+      "terminalStates": [
+        "compliance:FindingResolved"
+      ],
+      "relatesTo": [
+        "compliance:ComplianceGap",
+        "compliance:RegulationClause",
+        "compliance:RemediationAction"
+      ],
+      "emitsEvent": [
+        "compliance:FindingReviewed",
+        "compliance:FindingResolved"
+      ]
     },
     {
-      "@id": "compliance:RiskFinding",
-      "@type": "owl:Class",
-      "rdfs:label": "Risk Finding",
-      "rdfs:comment": "A risk finding identified during compliance audit",
-      "rdfs:subClassOf": {
-        "@type": "owl:Restriction",
-        "owl:onProperty": "compliance:findingId",
-        "owl:cardinality": 1
-      }
-    },
-    {
-      "@id": "compliance:findingId",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Finding ID",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Unique identifier (UUID) for the risk finding"
-    },
-    {
-      "@id": "compliance:findingTitle",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Finding Title",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Title of the risk finding"
-    },
-    {
-      "@id": "compliance:findingDescription",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Finding Description",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Detailed description of the risk finding"
-    },
-    {
-      "@id": "compliance:riskScore",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Risk Score",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:onDatatype": "xsd:integer",
-        "owl:withRestrictions": [
-          {
-            "xsd:minInclusive": 1
-          },
-          {
-            "xsd:maxInclusive": 10
-          }
-        ]
+      "id": "compliance:AuditDocument",
+      "type": "Entity",
+      "name": "AuditDocument",
+      "description": "A document being audited for compliance",
+      "identityKey": "documentId: UUID",
+      "humanRef": "documentName",
+      "attributes": {
+        "documentId": "string",
+        "documentName": "string",
+        "documentType": "CONTRACT|SECURITY_POLICY|HR_POLICY|GDPR_NOTICE",
+        "uploadDate": "dateTime",
+        "auditStatus": "PENDING|IN_PROGRESS|COMPLETED"
       },
-      "rdfs:comment": "Numerical risk score from 1 to 10"
+      "invariant": [
+        "documentId must be unique",
+        "documentType must be one of: CONTRACT, SECURITY_POLICY, HR_POLICY, GDPR_NOTICE",
+        "auditStatus must be one of: PENDING, IN_PROGRESS, COMPLETED",
+        "uploadDate must be a valid ISO 8601 dateTime"
+      ],
+      "hasState": [
+        "compliance:AuditPending",
+        "compliance:AuditInProgress",
+        "compliance:AuditCompleted"
+      ],
+      "initialState": "compliance:AuditPending",
+      "terminalStates": [
+        "compliance:AuditCompleted"
+      ],
+      "relatesTo": [
+        "compliance:PolicySection"
+      ],
+      "emitsEvent": [
+        "compliance:AuditInProgress",
+        "compliance:AuditCompleted"
+      ]
     },
     {
-      "@id": "compliance:regulationReference",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Regulation Reference",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": "compliance:RegulationClause",
-      "rdfs:comment": "Reference to the regulation clause related to this finding"
-    },
-    {
-      "@id": "compliance:remediationSuggestion",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Remediation Suggestion",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Suggested remediation for the risk finding"
-    },
-    {
-      "@id": "compliance:AuditDocument",
-      "@type": "owl:Class",
-      "rdfs:label": "Audit Document",
-      "rdfs:comment": "A document being audited for compliance",
-      "rdfs:subClassOf": {
-        "@type": "owl:Restriction",
-        "owl:onProperty": "compliance:documentId",
-        "owl:cardinality": 1
-      }
-    },
-    {
-      "@id": "compliance:documentId",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Document ID",
-      "rdfs:domain": "compliance:AuditDocument",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Unique identifier (UUID) for the audit document"
-    },
-    {
-      "@id": "compliance:uploadDate",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Upload Date",
-      "rdfs:domain": "compliance:AuditDocument",
-      "rdfs:range": "xsd:dateTime",
-      "rdfs:comment": "Date when the document was uploaded"
-    },
-    {
-      "@id": "compliance:auditStatus",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Audit Status",
-      "rdfs:domain": "compliance:AuditDocument",
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:oneOf": {
-          "@list": ["PENDING", "IN_PROGRESS", "COMPLETED"]
-        }
+      "id": "compliance:RemediationAction",
+      "type": "Entity",
+      "name": "RemediationAction",
+      "description": "An action to remediate a compliance gap",
+      "identityKey": "actionId: UUID",
+      "humanRef": "actionTitle",
+      "attributes": {
+        "actionId": "string",
+        "actionTitle": "string",
+        "actionDescription": "string",
+        "priority": "CRITICAL|HIGH|MEDIUM|LOW",
+        "targetClause": "string"
       },
-      "rdfs:comment": "Current status of the audit"
+      "invariant": [
+        "actionId must be unique",
+        "priority must be one of: CRITICAL, HIGH, MEDIUM, LOW",
+        "Must address at least one ComplianceGap"
+      ],
+      "hasState": [
+        "compliance:ActionPlanned",
+        "compliance:ActionInProgress",
+        "compliance:ActionCompleted"
+      ],
+      "initialState": "compliance:ActionPlanned",
+      "terminalStates": [
+        "compliance:ActionCompleted"
+      ],
+      "relatesTo": [
+        "compliance:ComplianceGap",
+        "compliance:RegulationClause"
+      ],
+      "emitsEvent": [
+        "compliance:ActionInProgress",
+        "compliance:ActionCompleted"
+      ]
     },
     {
-      "@id": "compliance:RemediationAction",
-      "@type": "owl:Class",
-      "rdfs:label": "Remediation Action",
-      "rdfs:comment": "An action to remediate a compliance gap",
-      "rdfs:subClassOf": {
-        "@type": "owl:Restriction",
-        "owl:onProperty": "compliance:actionId",
-        "owl:cardinality": 1
-      }
+      "id": "compliance:MapSectionToRegulation",
+      "type": "Operation",
+      "name": "MapSectionToRegulation",
+      "description": "Maps a policy section to relevant regulation clauses",
+      "from": "compliance:PolicySection",
+      "to": "compliance:RegulationClause",
+      "precondition": [
+        "PolicySection must exist and have content",
+        "RegulationClause must exist in the knowledge base"
+      ],
+      "postcondition": [
+        "PolicySection is mapped to one or more RegulationClauses",
+        "Mapping relationship is recorded for audit trail"
+      ]
     },
     {
-      "@id": "compliance:actionId",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Action ID",
-      "rdfs:domain": "compliance:RemediationAction",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Unique identifier (UUID) for the remediation action"
+      "id": "compliance:DetectComplianceGap",
+      "type": "Operation",
+      "name": "DetectComplianceGap",
+      "description": "Detects compliance gaps by comparing policy sections against regulation clauses",
+      "from": "compliance:PolicySection",
+      "to": "compliance:ComplianceGap",
+      "precondition": [
+        "PolicySection must be mapped to RegulationClauses",
+        "RegulationClause requirements must be defined"
+      ],
+      "postcondition": [
+        "ComplianceGaps are identified and documented",
+        "Each gap references affected PolicySection and RegulationClause",
+        "Risk level is assigned to each gap"
+      ]
     },
     {
-      "@id": "compliance:actionTitle",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Action Title",
-      "rdfs:domain": "compliance:RemediationAction",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Title of the remediation action"
+      "id": "compliance:GenerateRiskFinding",
+      "type": "Operation",
+      "name": "GenerateRiskFinding",
+      "description": "Generates risk findings from identified compliance gaps",
+      "from": "compliance:ComplianceGap",
+      "to": "compliance:RiskFinding",
+      "precondition": [
+        "ComplianceGap must be identified and documented",
+        "Gap must have assigned risk level"
+      ],
+      "postcondition": [
+        "RiskFinding is created with detailed analysis",
+        "Risk score (1-10) is calculated",
+        "Remediation suggestions are provided",
+        "Finding references source ComplianceGap"
+      ]
     },
     {
-      "@id": "compliance:actionDescription",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Action Description",
-      "rdfs:domain": "compliance:RemediationAction",
-      "rdfs:range": "xsd:string",
-      "rdfs:comment": "Detailed description of the remediation action"
+      "id": "compliance:RecommendRemediation",
+      "type": "Operation",
+      "name": "RecommendRemediation",
+      "description": "Recommends remediation actions for risk findings",
+      "from": "compliance:RiskFinding",
+      "to": "compliance:RemediationAction",
+      "precondition": [
+        "RiskFinding must be reviewed and validated",
+        "Risk score and level must be assigned"
+      ],
+      "postcondition": [
+        "RemediationAction is created with specific steps",
+        "Priority is assigned based on risk level",
+        "Action targets specific RegulationClause",
+        "Action addresses one or more ComplianceGaps"
+      ]
     },
     {
-      "@id": "compliance:priority",
-      "@type": "owl:DatatypeProperty",
-      "rdfs:label": "Priority",
-      "rdfs:domain": "compliance:RemediationAction",
-      "rdfs:range": {
-        "@type": "rdfs:Datatype",
-        "owl:oneOf": {
-          "@list": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
-        }
-      },
-      "rdfs:comment": "Priority level of the remediation action"
+      "id": "compliance:IdentifiedIn",
+      "type": "Operation",
+      "name": "IdentifiedIn",
+      "description": "Links a compliance gap to the policy section where it was identified",
+      "from": "compliance:ComplianceGap",
+      "to": "compliance:PolicySection",
+      "precondition": [
+        "ComplianceGap must exist",
+        "PolicySection must exist"
+      ],
+      "postcondition": [
+        "Gap is associated with specific PolicySection",
+        "Traceability is established for audit purposes"
+      ]
     },
     {
-      "@id": "compliance:targetClause",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Target Clause",
-      "rdfs:domain": "compliance:RemediationAction",
-      "rdfs:range": "compliance:RegulationClause",
-      "rdfs:comment": "The regulation clause targeted by this remediation action"
+      "id": "compliance:Violates",
+      "type": "Operation",
+      "name": "Violates",
+      "description": "Links a compliance gap to the regulation clause it violates",
+      "from": "compliance:ComplianceGap",
+      "to": "compliance:RegulationClause",
+      "precondition": [
+        "ComplianceGap must exist",
+        "RegulationClause must exist"
+      ],
+      "postcondition": [
+        "Gap is associated with violated RegulationClause",
+        "Violation is documented for compliance reporting"
+      ]
     },
     {
-      "@id": "compliance:mapsTo",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Maps To",
-      "rdfs:domain": "compliance:PolicySection",
-      "rdfs:range": "compliance:RegulationClause",
-      "rdfs:comment": "Indicates that a policy section maps to a regulation clause"
+      "id": "compliance:ContainsGap",
+      "type": "Operation",
+      "name": "ContainsGap",
+      "description": "Links a risk finding to the compliance gaps it contains",
+      "from": "compliance:RiskFinding",
+      "to": "compliance:ComplianceGap",
+      "precondition": [
+        "RiskFinding must exist",
+        "ComplianceGap must be identified"
+      ],
+      "postcondition": [
+        "RiskFinding contains one or more ComplianceGaps",
+        "Relationship enables gap-to-finding traceability"
+      ]
     },
     {
-      "@id": "compliance:identifiedIn",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Identified In",
-      "rdfs:domain": "compliance:ComplianceGap",
-      "rdfs:range": "compliance:PolicySection",
-      "rdfs:comment": "Indicates that a compliance gap was identified in a policy section"
+      "id": "compliance:HasSection",
+      "type": "Operation",
+      "name": "HasSection",
+      "description": "Links an audit document to its policy sections",
+      "from": "compliance:AuditDocument",
+      "to": "compliance:PolicySection",
+      "precondition": [
+        "AuditDocument must be uploaded",
+        "Document must be parsed into sections"
+      ],
+      "postcondition": [
+        "AuditDocument contains one or more PolicySections",
+        "Sections are available for compliance analysis"
+      ]
     },
     {
-      "@id": "compliance:violates",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Violates",
-      "rdfs:domain": "compliance:ComplianceGap",
-      "rdfs:range": "compliance:RegulationClause",
-      "rdfs:comment": "Indicates that a compliance gap violates a regulation clause"
+      "id": "compliance:AddressesGap",
+      "type": "Operation",
+      "name": "AddressesGap",
+      "description": "Links a remediation action to the compliance gaps it addresses",
+      "from": "compliance:RemediationAction",
+      "to": "compliance:ComplianceGap",
+      "precondition": [
+        "RemediationAction must be planned",
+        "ComplianceGap must be identified"
+      ],
+      "postcondition": [
+        "Action is linked to specific gaps",
+        "Gap remediation can be tracked"
+      ]
     },
     {
-      "@id": "compliance:containsGap",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Contains Gap",
-      "rdfs:domain": "compliance:RiskFinding",
-      "rdfs:range": "compliance:ComplianceGap",
-      "rdfs:comment": "Indicates that a risk finding contains a compliance gap"
+      "id": "compliance:PolicySectionPending",
+      "type": "State",
+      "name": "PolicySectionPending",
+      "description": "Policy section has been extracted but not yet mapped to regulations"
     },
     {
-      "@id": "compliance:hasSection",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Has Section",
-      "rdfs:domain": "compliance:AuditDocument",
-      "rdfs:range": "compliance:PolicySection",
-      "rdfs:comment": "Indicates that an audit document has a policy section"
+      "id": "compliance:PolicySectionMapped",
+      "type": "State",
+      "name": "PolicySectionMapped",
+      "description": "Policy section has been mapped to relevant regulation clauses"
     },
     {
-      "@id": "compliance:addressesGap",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Addresses Gap",
-      "rdfs:domain": "compliance:RemediationAction",
-      "rdfs:range": "compliance:ComplianceGap",
-      "rdfs:comment": "Indicates that a remediation action addresses a compliance gap"
+      "id": "compliance:PolicySectionAudited",
+      "type": "State",
+      "name": "PolicySectionAudited",
+      "description": "Policy section has been fully audited for compliance"
     },
     {
-      "@id": "compliance:MapSectionToRegulation",
-      "@type": "owl:Class",
-      "rdfs:label": "Map Section To Regulation Operation",
-      "rdfs:comment": "Operation to map a policy section to a regulation clause",
-      "rdfs:subClassOf": "compliance:Operation"
+      "id": "compliance:GapIdentified",
+      "type": "State",
+      "name": "GapIdentified",
+      "description": "Compliance gap has been identified but not yet analyzed"
     },
     {
-      "@id": "compliance:DetectComplianceGap",
-      "@type": "owl:Class",
-      "rdfs:label": "Detect Compliance Gap Operation",
-      "rdfs:comment": "Operation to detect compliance gaps in policy sections",
-      "rdfs:subClassOf": "compliance:Operation"
+      "id": "compliance:GapAnalyzed",
+      "type": "State",
+      "name": "GapAnalyzed",
+      "description": "Compliance gap has been analyzed and risk assessed"
     },
     {
-      "@id": "compliance:GenerateRiskFinding",
-      "@type": "owl:Class",
-      "rdfs:label": "Generate Risk Finding Operation",
-      "rdfs:comment": "Operation to generate risk findings from compliance gaps",
-      "rdfs:subClassOf": "compliance:Operation"
+      "id": "compliance:GapRemediated",
+      "type": "State",
+      "name": "GapRemediated",
+      "description": "Compliance gap has been remediated and closed"
     },
     {
-      "@id": "compliance:RecommendRemediation",
-      "@type": "owl:Class",
-      "rdfs:label": "Recommend Remediation Operation",
-      "rdfs:comment": "Operation to recommend remediation actions for risk findings",
-      "rdfs:subClassOf": "compliance:Operation"
+      "id": "compliance:FindingDraft",
+      "type": "State",
+      "name": "FindingDraft",
+      "description": "Risk finding is being drafted and not yet reviewed"
     },
     {
-      "@id": "compliance:Operation",
-      "@type": "owl:Class",
-      "rdfs:label": "Operation",
-      "rdfs:comment": "Base class for compliance audit operations"
+      "id": "compliance:FindingReviewed",
+      "type": "State",
+      "name": "FindingReviewed",
+      "description": "Risk finding has been reviewed and validated"
     },
     {
-      "@id": "compliance:hasInput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Has Input",
-      "rdfs:domain": "compliance:Operation",
-      "rdfs:comment": "Specifies the input entity for an operation"
+      "id": "compliance:FindingResolved",
+      "type": "State",
+      "name": "FindingResolved",
+      "description": "Risk finding has been resolved through remediation"
     },
     {
-      "@id": "compliance:hasOutput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Has Output",
-      "rdfs:domain": "compliance:Operation",
-      "rdfs:comment": "Specifies the output entity for an operation"
+      "id": "compliance:AuditPending",
+      "type": "State",
+      "name": "AuditPending",
+      "description": "Audit document has been uploaded but audit not yet started"
     },
     {
-      "@id": "compliance:mapSectionToRegulationInput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Map Section To Regulation Input",
-      "rdfs:domain": "compliance:MapSectionToRegulation",
-      "rdfs:range": "compliance:PolicySection",
-      "rdfs:subPropertyOf": "compliance:hasInput"
+      "id": "compliance:AuditInProgress",
+      "type": "State",
+      "name": "AuditInProgress",
+      "description": "Audit is currently in progress"
     },
     {
-      "@id": "compliance:mapSectionToRegulationOutput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Map Section To Regulation Output",
-      "rdfs:domain": "compliance:MapSectionToRegulation",
-      "rdfs:range": "compliance:RegulationClause",
-      "rdfs:subPropertyOf": "compliance:hasOutput"
+      "id": "compliance:AuditCompleted",
+      "type": "State",
+      "name": "AuditCompleted",
+      "description": "Audit has been completed and report generated"
     },
     {
-      "@id": "compliance:detectComplianceGapInput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Detect Compliance Gap Input",
-      "rdfs:domain": "compliance:DetectComplianceGap",
-      "rdfs:range": "compliance:PolicySection",
-      "rdfs:subPropertyOf": "compliance:hasInput"
+      "id": "compliance:ActionPlanned",
+      "type": "State",
+      "name": "ActionPlanned",
+      "description": "Remediation action has been planned but not yet started"
     },
     {
-      "@id": "compliance:detectComplianceGapOutput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Detect Compliance Gap Output",
-      "rdfs:domain": "compliance:DetectComplianceGap",
-      "rdfs:range": "compliance:ComplianceGap",
-      "rdfs:subPropertyOf": "compliance:hasOutput"
+      "id": "compliance:ActionInProgress",
+      "type": "State",
+      "name": "ActionInProgress",
+      "description": "Remediation action is currently being implemented"
     },
     {
-      "@id": "compliance:generateRiskFindingInput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Generate Risk Finding Input",
-      "rdfs:domain": "compliance:GenerateRiskFinding",
-      "rdfs:range": "compliance:ComplianceGap",
-      "rdfs:subPropertyOf": "compliance:hasInput"
-    },
-    {
-      "@id": "compliance:generateRiskFindingOutput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Generate Risk Finding Output",
-      "rdfs:domain": "compliance:GenerateRiskFinding",
-      "rdfs:range": "compliance:RiskFinding",
-      "rdfs:subPropertyOf": "compliance:hasOutput"
-    },
-    {
-      "@id": "compliance:recommendRemediationInput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Recommend Remediation Input",
-      "rdfs:domain": "compliance:RecommendRemediation",
-      "rdfs:range": "compliance:RiskFinding",
-      "rdfs:subPropertyOf": "compliance:hasInput"
-    },
-    {
-      "@id": "compliance:recommendRemediationOutput",
-      "@type": "owl:ObjectProperty",
-      "rdfs:label": "Recommend Remediation Output",
-      "rdfs:domain": "compliance:RecommendRemediation",
-      "rdfs:range": "compliance:RemediationAction",
-      "rdfs:subPropertyOf": "compliance:hasOutput"
+      "id": "compliance:ActionCompleted",
+      "type": "State",
+      "name": "ActionCompleted",
+      "description": "Remediation action has been completed and verified"
     }
   ]
 }

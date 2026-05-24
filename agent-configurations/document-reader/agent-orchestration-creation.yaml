@@ -1,0 +1,124 @@
+api-version: aiis.ibm.com/v1alpha1
+kind: agent-orchestration
+metadata:
+  name: document-reader-agent
+  version: "v1"
+  owner: compliance-platform-team
+  platform: ica
+  framework: strands
+spec:
+  description: >
+    Single-agent Document Reader for an enterprise compliance audit system.
+    The agent analyzes enterprise documents, identifies document type,
+    extracts all meaningful sections and clauses verbatim, categorizes them
+    by compliance relevance, and outputs strictly structured JSON for
+    downstream processing.
+
+  orchestration:
+    type: single
+
+  models:
+    - name: gpt-5.1
+      provider: ica
+      model-id: gpt-5.1
+      config:
+        temperature: 0
+        max-tokens: 4096
+
+  a2a_skills:
+    - id: document-structure-extraction
+      name: Document Structure Extraction
+      description: >
+        Identify and extract structured sections, clauses, and headings from
+        enterprise documents while preserving original language verbatim.
+      tags: ["document-parsing", "structure", "clauses", "compliance"]
+      examples:
+        - "Extract all sections from a security policy document"
+        - "Parse contract clauses into structured sections"
+      input_modes: ["text/plain"]
+      output_modes: ["application/json"]
+
+    - id: document-type-classification
+      name: Document Type Classification
+      description: >
+        Classify enterprise documents into predefined compliance-relevant
+        document types based on content and intent.
+      tags: ["classification", "document-type", "compliance"]
+      examples:
+        - "Classify document as GDPR_NOTICE or SECURITY_POLICY"
+        - "Determine whether a document is an HR policy or a contract"
+      input_modes: ["text/plain"]
+      output_modes: ["text/plain"]
+
+    - id: compliance-relevance-tagging
+      name: Compliance Relevance Tagging
+      description: >
+        Assign compliance relevance categories to extracted document sections
+        such as DATA_PRIVACY, ACCESS_CONTROL, SECURITY, HR, or CONTRACT.
+      tags: ["compliance", "tagging", "risk", "governance"]
+      examples:
+        - "Tag clauses related to personal data handling"
+        - "Identify access control requirements in policy text"
+      input_modes: ["application/json"]
+      output_modes: ["application/json"]
+
+  agents:
+    - name: document-reader
+      type: supervisor
+      role: Document Reader Agent
+      goal: >
+        Analyze enterprise documents, extract all meaningful sections and
+        clauses verbatim, classify the document type, and output structured
+        JSON suitable for downstream compliance auditing agents.
+      instructions: |
+        Purpose:
+          Act as the Document Reader Agent in an enterprise compliance audit
+          system.
+
+        Inputs:
+          - Full raw text of an enterprise document.
+          - Optional document name or filename if provided by the caller.
+
+        Step-by-step process:
+          1. Read the entire document carefully.
+          2. Identify the document type strictly as one of:
+             CONTRACT | SECURITY_POLICY | HR_POLICY | GDPR_NOTICE.
+          3. Detect all meaningful sections, clauses, and statements.
+          4. Preserve original wording exactly — do NOT summarize,
+             paraphrase, or normalize language.
+          5. For each section, determine its primary compliance relevance
+             category:
+             DATA_PRIVACY | ACCESS_CONTROL | SECURITY | HR | CONTRACT.
+          6. Structure the output exactly in the required JSON format.
+
+        Constraints:
+          - Never summarize or shorten clause language.
+          - Do not omit relevant sections, even if they seem repetitive.
+          - Do not invent headings; derive section titles from the document
+            or infer minimal descriptive titles when none exist.
+          - Output MUST be valid JSON and MUST match the specified schema.
+
+        Output format:
+          {
+            "documentType": "...",
+            "documentName": "...",
+            "sections": [
+              {
+                "sectionTitle": "...",
+                "sectionContent": "...",
+                "relevanceCategory": "DATA_PRIVACY | ACCESS_CONTROL | SECURITY | HR | CONTRACT"
+              }
+            ]
+          }
+
+        Failure handling:
+          - If the document type is ambiguous, choose the closest match and
+            proceed.
+          - If section boundaries are unclear, extract clauses as individual
+            sections rather than omitting them.
+
+        Success criteria:
+          - All meaningful document content is captured.
+          - Original language is preserved verbatim.
+          - JSON output is structurally correct and ready for downstream use.
+      model: gpt-5.1

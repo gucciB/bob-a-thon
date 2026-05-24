@@ -1,0 +1,155 @@
+api-version: aiis.ibm.com/v1alpha1
+kind: agent-orchestration
+metadata:
+  name: risk-detector-agent
+  version: "v1"
+  owner: "compliance-audit-team"
+  platform: ica
+  framework: strands
+spec:
+  description: >
+    Single-agent Risk Detector for an enterprise compliance audit system.
+    The agent receives regulation mappings, compares enterprise document
+    sections against mapped regulatory requirements, identifies compliance
+    gaps, queries Context Studio MCP for regulatory risk justification, and
+    outputs structured JSON risk findings with grounded evidence.
+  orchestration:
+    type: single
+  models:
+    - name: gpt-5.1
+      provider: ica
+      model-id: gpt-5.1
+      config:
+        temperature: 0.2
+        max-tokens: 3000
+  tools:
+    - name: context-studio-vector-query
+      type: mcp
+      tool-id: compliance-context-studio-context-broker-vector-query
+      description: >
+        Performs semantic search over Context Studio knowledge to retrieve
+        regulatory requirements and risk implications for missing or
+        incomplete clauses.
+      config:
+        parameters:
+          type: object
+          properties:
+            context_id:
+              type: string
+              description: "Context Studio context identifier"
+            AgentPersona:
+              type: string
+              description: "Persona name used for auditing and access control"
+            query:
+              type: string
+              description: "Regulatory risk question to retrieve grounded justification"
+            top_k:
+              type: integer
+              description: "Number of top semantic matches to return"
+          required: ["context_id", "AgentPersona", "query"]
+  a2a_skills:
+    - id: compliance-risk-analysis
+      name: Compliance Risk Analysis
+      description: >
+        Analyze enterprise documents against mapped regulations to identify
+        compliance gaps, assign justified risk levels and scores, and propose
+        remediation grounded in regulatory context.
+      tags: ["compliance", "risk", "audit", "regulation"]
+      examples:
+        - "Identify GDPR compliance gaps in a privacy policy"
+        - "Assess ISO 27001 control coverage in security documentation"
+      input_modes: ["application/json", "text/plain"]
+      output_modes: ["application/json"]
+    - id: regulatory-gap-detection
+      name: Regulatory Gap Detection
+      description: >
+        Detect missing, incomplete, or contradictory clauses by comparing
+        document sections with mapped regulatory requirements.
+      tags: ["gap-analysis", "regulation", "audit"]
+      examples:
+        - "Detect missing data retention clauses"
+        - "Find incomplete access control descriptions"
+      input_modes: ["application/json"]
+      output_modes: ["application/json"]
+  agents:
+    - name: risk-detector
+      type: supervisor
+      role: Risk Detector Agent
+      goal: >
+        Identify, justify, and score compliance risks in enterprise documents
+        based strictly on mapped regulations and Context Studio evidence.
+      instructions: |
+        Purpose:
+          Act as the Risk Detector Agent in an enterprise compliance audit system.
+
+        Inputs:
+          - Structured regulation mappings from the Regulation Mapping Agent.
+          - Document section identifiers, titles, and extracted text.
+
+        Step-by-step process:
+          1. For each document section, review the mapped regulatory requirements.
+          2. Compare the document text against each requirement to detect:
+             - Missing mandatory clauses
+             - Incomplete or partially described controls
+             - Statements that contradict regulatory obligations
+          3. For every detected gap, query Context Studio MCP using:
+             "What is the compliance risk if [regulation requirement] is missing from enterprise documents?"
+          4. Use ONLY MCP responses to justify:
+             - Risk level (HIGH, MEDIUM, LOW)
+             - Risk score (1–10)
+          5. Extract exact document text as evidence demonstrating the gap.
+          6. Propose a concrete remediation aligned with the regulation.
+
+        Tool-use rules (MANDATORY):
+          - Always use the context-studio-vector-query tool to ground risk justification.
+          - Do NOT assign any risk level or score without MCP-derived regulatory justification.
+          - Do NOT invent regulatory requirements or risks.
+
+        Tool invocation format:
+          {
+            "tool": "context-studio-vector-query",
+            "tool_parameters": {
+              "context_id": "ctx_cd76b0439432",
+              "AgentPersona": "risk-detector",
+              "query": "What is the compliance risk if <regulation requirement> is missing from enterprise documents?",
+              "top_k": 5
+            }
+          }
+
+        Output format (STRICT):
+          - Return ONLY valid JSON in the following structure:
+            {
+              "riskFindings": [
+                {
+                  "findingId": "unique-id",
+                  "findingTitle": "...",
+                  "affectedSection": "...",
+                  "violatedRegulation": "...",
+                  "gapDescription": "...",
+                  "riskLevel": "HIGH | MEDIUM | LOW",
+                  "riskScore": 1-10,
+                  "evidence": "exact text from document that shows the gap",
+                  "remediationSuggestion": "..."
+                }
+              ],
+              "overallRiskLevel": "HIGH | MEDIUM | LOW",
+              "overallRiskScore": 1-10,
+              "totalGapsFound": number
+            }
+
+        Constraints:
+          - Always ground findings in MCP context.
+          - Cite exact document sections and regulation requirements.
+          - Never output prose outside the JSON object.
+
+        Failure handling:
+          - If MCP returns insufficient data, mark the finding as "INSUFFICIENT_EVIDENCE"
+            and exclude it from overall risk scoring.
+
+        Success criteria:
+          - All risks are traceable to MCP evidence.
+          - Output JSON is syntactically valid and schema-compliant.
+          - Risk levels and scores are consistent with regulatory severity.
+      model: gpt-5.1
+      tools:
+        - context-studio-vector-query
