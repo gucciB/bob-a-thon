@@ -916,17 +916,21 @@ Step 3: Risk Detector Agent identifies gaps:
 
 Step 4: Report Generator produces structured
          audit report with remediation
+
+```
 		 
 ******************************************
 
 
 
 # Continuing Step-by-Step Implementation
+
+# PHASE 4 — COMPLETING THE REACT FRONTEND
 ## After Step 4.6 — Build Risk Findings Table Component
 
 ---
 
-# PHASE 4 — COMPLETING THE REACT FRONTEND
+
 
 ---
 
