@@ -67,8 +67,7 @@ const DocumentUploadForm = () => {
   const regulations = [
     { value: 'ALL', label: 'All Regulations' },
     { value: 'GDPR', label: 'GDPR' },
-    { value: 'ISO27001', label: 'ISO 27001' },
-    { value: 'SOC2', label: 'SOC 2' }
+    { value: 'ISO27001', label: 'ISO 27001' }
   ];
 
   // Extract text from PDF file
@@ -341,7 +340,8 @@ const DocumentUploadForm = () => {
       const auditResponse = await auditService.submitAuditDocument(
         documentText,
         documentName,
-        documentType.toLowerCase().replace('_', '-')
+        documentType.toLowerCase().replace('_', '-'),
+        selectedRegulations
       );
 
       clearInterval(actualTimerInterval);
@@ -359,8 +359,8 @@ const DocumentUploadForm = () => {
       setProgressMessage(`Audit complete! (${totalTime}s)`);
       setProgress(100);
       
-      // Load the audit result into context
-      loadAudit(auditResponse.data);
+      // Load the audit result into context with document text for preview
+      loadAudit(auditResponse.data, documentText);
       console.log('Audit loaded into context successfully!');
       
       // Reset form after a short delay

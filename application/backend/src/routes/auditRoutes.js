@@ -82,7 +82,7 @@ router.post('/upload', upload.single('file'), asyncHandler(async (req, res) => {
  * Returns the audit report as markdown text
  */
 router.post('/', asyncHandler(async (req, res) => {
-  const { text, documentType, documentName } = req.body;
+  const { text, documentType, documentName, regulations = ['ALL'] } = req.body;
 
   // Validate input
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -96,9 +96,10 @@ router.post('/', asyncHandler(async (req, res) => {
   logger.info(`Starting audit for document type: ${documentType}`);
   logger.info(`Document name: ${documentName || 'Not provided'}`);
   logger.info(`Document text length: ${text.length} characters`);
+  logger.info(`Selected regulations: ${regulations.join(', ')}`);
 
   // Perform audit using ICA service - returns markdown text
-  const auditReportMarkdown = await icaService.performAudit(text, documentType);
+  const auditReportMarkdown = await icaService.performAudit(text, documentType, regulations);
 
   logger.info(`Audit completed successfully, report length: ${auditReportMarkdown.length} characters`);
 

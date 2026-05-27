@@ -290,17 +290,76 @@ export const AuditProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_HISTORY, payload: history });
   }, []);
 
-  // Load audit result directly (for simplified markdown response)
-  const loadAudit = useCallback((auditData) => {
+  // Load audit result directly (for simplified markdown response) - adds to history
+  const loadAudit = useCallback((auditData, documentText = '') => {
+    // Check if this audit already exists in history (by ID)
+    const existingAudit = state.auditHistory.find(a => a.id === auditData.id);
+    
+    if (existingAudit) {
+      // If it exists, just set it as current without adding to history
+      dispatch({ type: ACTIONS.SET_CURRENT_AUDIT, payload: existingAudit });
+      return existingAudit;
+    }
+    
+    // Generate serial number based on current history length
+    const serialNumber = state.auditHistory.length + 1;
+    
+    // Create content preview (first 200 characters)
+    const contentPreview = documentText
+      ? documentText.substring(0, 200) + (documentText.length > 200 ? '...' : '')
+      : 'No preview available';
+    
+    // Parse compliance score from report if available
+    let overallScore = 0;
+    let complianceStatus = 'UNKNOWN';
+    let findings = [];
+    
+    if (auditData.report) {
+      // Try to extract score from markdown report
+      const scoreMatch = auditData.report.match(/Overall\s+Score[:\s]+(\d+)%/i) ||
+                        auditData.report.match(/Compliance\s+Score[:\s]+(\d+)%/i) ||
+                        auditData.report.match(/Score[:\s]+(\d+)%/i);
+      if (scoreMatch) {
+        overallScore = parseInt(scoreMatch[1], 10);
+      }
+      
+      // Determine compliance status based on score
+      if (overallScore >= 80) {
+        complianceStatus = 'COMPLIANT';
+      } else if (overallScore >= 60) {
+        complianceStatus = 'PARTIALLY_COMPLIANT';
+      } else if (overallScore > 0) {
+        complianceStatus = 'NON_COMPLIANT';
+      }
+      
+      // Try to extract findings count
+      const findingsMatch = auditData.report.match(/(\d+)\s+(?:findings?|issues?|gaps?)/i);
+      if (findingsMatch) {
+        const findingsCount = parseInt(findingsMatch[1], 10);
+        findings = Array(findingsCount).fill({ severity: 'MEDIUM' });
+      }
+    }
+    
     const auditResult = {
       ...auditData,
       id: auditData.id || `audit-${Date.now()}`,
-      timestamp: auditData.timestamp || new Date().toISOString()
+      serialNumber,
+      timestamp: auditData.timestamp || new Date().toISOString(),
+      documentName: auditData.documentName || 'Untitled Document',
+      documentType: auditData.documentType || 'policy',
+      documentContent: documentText,
+      contentPreview,
+      overallScore,
+      complianceStatus,
+      findings,
+      report: auditData.report || ''
     };
     
     dispatch({ type: ACTIONS.SET_CURRENT_AUDIT, payload: auditResult });
     dispatch({ type: ACTIONS.ADD_TO_HISTORY, payload: auditResult });
-  }, []);
+    
+    return auditResult;
+  }, [state.auditHistory]);
 
   const value = {
     // State

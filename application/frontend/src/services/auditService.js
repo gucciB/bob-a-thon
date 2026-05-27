@@ -57,18 +57,20 @@ apiClient.interceptors.response.use(
 
 /**
  * Submit document text for compliance audit
- * 
+ *
  * @param {string} documentText - The document text to audit
  * @param {string} documentName - Name of the document
  * @param {string} documentType - Type of document (privacy-policy, security-policy, vendor-agreement)
+ * @param {Array<string>} regulations - Selected regulations to check (e.g., ['GDPR', 'ISO27001'])
  * @returns {Promise<Object>} Audit results
  */
-export const submitAuditDocument = async (documentText, documentName, documentType) => {
+export const submitAuditDocument = async (documentText, documentName, documentType, regulations = ['ALL']) => {
   try {
     const response = await apiClient.post('/api/audit', {
       text: documentText,
       documentName,
       documentType,
+      regulations,
     });
 
     return {

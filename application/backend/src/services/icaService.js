@@ -18,17 +18,41 @@ class ICAService {
    * Call ICA Workflow API to perform compliance audit
    * Returns the audit report as markdown text
    */
-  async performAudit(documentText, documentType) {
+  async performAudit(documentText, documentType, regulations = ['ALL']) {
     logger.info(`Performing audit for document type: ${documentType}`);
     logger.info(`Document text length: ${documentText.length} characters`);
+    logger.info(`Selected regulations: ${regulations.join(', ')}`);
 
     try {
+      // Construct regulation string based on selection
+      let regulationString;
+      if (regulations.includes('ALL') || regulations.length === 0) {
+        regulationString = 'GDPR and ISO 27001';
+      } else {
+        // Map regulation codes to full names
+        const regulationNames = regulations.map(reg => {
+          switch(reg) {
+            case 'GDPR': return 'GDPR';
+            case 'ISO27001': return 'ISO 27001';
+            default: return reg;
+          }
+        });
+        regulationString = regulationNames.join(' and ');
+      }
+
+      const inputPrompt = `Audit this document for ${regulationString} compliance:
+
+${documentText}`;
+
+      // Log the constructed prompt for the first time
+      logger.info('\n=== CONSTRUCTED AUDIT PROMPT ===');
+      logger.info(inputPrompt);
+      logger.info('=== END PROMPT ===\n');
+
       const payload = {
         "output_type": "chat",
         "input_type": "chat",
-        "input_value": `Audit this document for GDPR and ISO 27001 compliance:
-
-${documentText}`,
+        "input_value": inputPrompt,
         "session_id": crypto.randomUUID()
       };
       
